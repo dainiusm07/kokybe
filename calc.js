@@ -48,6 +48,8 @@ function isEmpty(obj) {
     return true;
 }
 
+throw Error("That shouldn't be here")
+
 // Calculates and returns fee
 function feeCalculation (data, user) { 
 
