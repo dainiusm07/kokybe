@@ -24,23 +24,26 @@ const cash_out = {
     }
 }
 
-function getWeekNumber(d) {
+const DAY_IN_MS = 24 * 60 * 60 * 1000
+
+
+function getWeekNumber(date) {
     // Copy date so don't modify original
-    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    date = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     // Set to nearest Thursday: current date + 4 - current day number
     // Make Sunday's day number 7
-    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+    date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay()||7));
     // Get first day of year
-    let yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+    let yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
     // Calculate full weeks to nearest Thursday
-    let weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+    let weekNo = Math.ceil(( ( (date - yearStart) / DAY_IN_MS) + 1)/7);
     // Return array of year and week number
-    return [d.getUTCFullYear(), weekNo];
+    return [date.getUTCFullYear(), weekNo];
 }
 
 // Checks if object is empty
 function isEmpty(obj) {
-    for(var key in obj) {
+    for(const key in obj) {
         if(Object.prototype.hasOwnProperty.call(obj, key)){
             return false;
         }
@@ -48,27 +51,21 @@ function isEmpty(obj) {
     return true;
 }
 
-// Calculates and returns fee
-function feeCalculation (data, user) { 
+function calculateFee(data, user) { 
 
-    // User wants to top up his balance
     if (data.type === "cash_in") { 
         const fee = data.operation.amount * cash_in.percents/100; 
 
-        // If calculated fee is lower than max fee return calculated one
         if (fee < cash_in.max.amount) { 
             return fee;
         }
 
-        // Else return max fee, that is described in cash_in obj
         return cash_in.max.amount; 
     }
 
-    // Cash out
     else { 
         if (data.user_type === "natural"){
 
-            // Gets all week data from operation date
             const weekData = getWeekNumber(new Date(data.date));
 
             /* If user object with that id is empty - creates that obj
@@ -105,12 +102,10 @@ function feeCalculation (data, user) {
         if (data.user_type === "juridical") {
             const fee = data.operation.amount * cash_out.juridical.percents/100;
 
-            // If calculated fee is lower than min fee returs min fee
             if (fee < cash_out.juridical.min.amount){ 
                 return cash_out.juridical.min.amount;
             }
 
-            // If greater returns calculated fee
             return fee; 
         }
     }
@@ -135,6 +130,6 @@ fs.readFile(filename[0], (err, inputData) => {
 
     // Loop for calculating and printing fees of all given operations
     for (let i = 0; i<data.length ; i++)
-        console.log(roundFee(feeCalculation(data[i], user)).toFixed(2));
+        console.log(roundFee(calculateFee(data[i], user)).toFixed(2));
 
 });
