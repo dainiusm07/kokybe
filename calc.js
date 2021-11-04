@@ -1,7 +1,7 @@
 const cash_in = {
     "percents": 0.03,
     "max": {
-        "amount": 5,
+        "amount": 6,
         "currency": "EUR"
     }
 }
